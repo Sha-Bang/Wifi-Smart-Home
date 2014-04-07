@@ -1,4 +1,9 @@
 
+
+def start(q):
+	test(q)
+
+
 def formatData():
 	from random import randint as ri
 
@@ -14,14 +19,18 @@ def formatData():
 	return deviceInstance
 
 
+def test(q):
+	"""
+		Every 5 secs create a new set of input
+	"""
+	from time import sleep
+	while True:
+		for item in formatData().items():
+			#default for x in hash is hash.keys(), calling items allows me to send the whole dict
+			q.put(item)
+		sleep(5)
+
 
 if __name__ == '__main__':
-	x = formatData()
-	
-	
-	for mac in x:
-		print mac
-		print "heighest:", x[mac][0]
-	
-		for sensorReading in x[mac]:
-			print sensorReading
+	print "I don't know what to do, doing the only thing I can"
+	print formatData()
