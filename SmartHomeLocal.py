@@ -25,9 +25,9 @@ def test(q):
 	"""
 	from time import sleep
 	while True:
-		for item in formatData().items():
+		for k,v in formatData().items():
 			#default for x in hash is hash.keys(), calling items allows me to send the whole dict
-			q.put(item)
+			q.put({k:v})
 		sleep(5)
 
 
