@@ -1,0 +1,31 @@
+
+Host mio
+	HostName mio.mines.edu
+	Port 22
+	User nhuff
+	IdentityFile ~/.ssh/id_rsa
+
+Host ill
+	HostName illuminate.mines.edu
+	Port 22
+	User nhuff
+	IdentityFile ~/.ssh/id_rsa
+
+Host mio1
+	HostName mio001.mines.edu
+	Port 22
+	User nhuff
+	IdentityFile ~/.ssh/id_rsa
+
+Host bluem
+	HostName bluem.mines.edu
+	Port 22
+	User nhuff
+	IdentityFile ~/.ssh/id_rsa
+
+Host ima
+	HostName imagine.mines.edu
+	Port 22
+	User nhuff
+	IdentityFile ~/.ssh/id_rsa
+
