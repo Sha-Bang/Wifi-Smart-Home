@@ -1,78 +1,87 @@
 
 from multiprocessing import Queue, Process
 from subprocess import Popen, PIPE
+from threading import Timer
 import shlex
 from time import time, sleep
 import SocketServer
 import sched
+import socket
 
 w = .25
-x = 2.5
-myBuffer = {}
+x = 4.5 #2.5
+myBuffer = {"test":"worked"}
 q = Queue() #Create multiprocessing.Queue
-s = sched.scheduler(time, sleep)
+sch = sched.scheduler(time, sleep)
 global sysQ
+UDP_IP = "127.0.0.1"
+UDP_IP = "192.168.43.31"
+UDP_PORT = 9750
 
 def start(sysQl):
+	global sysQ
 	sysQ = sysQl
-	#server.serve_forever()
-	HOST, PORT = "localhost", 9750
-# Create the server, binding to localhost on port 9999
-	server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
-	system = Process(target=server.serve_forever)
+
+	sock = socket.socket(socket.AF_INET, # Internet
+				                     socket.SOCK_DGRAM) # UDP
+	sock.bind((UDP_IP, UDP_PORT))
+	system = Process(target=startServer, args=(sock,))
 	system.start()
 	bufferStuff(q)
 
+
+def startServer(sock): #UDP Server start
+	while True:
+		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+
+		#TODO
+		addr = "12:3:23:32:ab"
+
+		q.put((addr, data))
+		print "sServer", addr, data
 
 
 def bufferStuff(q):
 	while True:
 		addr, data = q.get()
+		print "BuffStuff", addr, data
 		if not myBuffer.get(addr, []):
-			s.enter(w*x, 1, sendToSys, addr)
-		myBuffer.get(addr, []).append(data)
+			print "adding", addr
+			sch.enter(w*x, 1, sendToSys, addr)
+			Timer(w*x, sendToSys, (addr,)).start()
+
+			system = Process(target=sch.run)
+		myBuffer.setdefault(addr, [])
+		myBuffer[addr].append(data)
+		print "BuffStuff-dict", myBuffer
 
 
 def sendToSys(addr):
+	global sysQ
+	print "s2s", addr
 	localData = []
 	while myBuffer[addr]:
 		localData.append(myBuffer[addr].pop(0))
 	sensors = {}
 	for data in localData:
-		mac, rssi = data.split()
-		sensors.setdefault(mac, (0, []))
-		sensors[mac][0]+=1
-		sensors[mac][1].append(int(rssi))
+		devN, rssi = data.split() 
+		rssi = int(rssi)
+		if rssi == 0:
+			rssi = 100000
+		sensors.setdefault(devN, [0, []])
+		print sensors[devN], sensors[devN][0]
+		sensors[devN][0] = sensors[devN][0] + 1
+		sensors[devN][1].append(rssi)
 	retval = []
 	for mac in sensors:
-		retval.append({'sensor#':mac, 'avRSSI':sum(sensors[mac][1])/sensors[mac][1], 'numRSSIReadings':sensors[mac][1]})
-	sensors =  sorted(sensors, key=lambda y:y['avRSSI'])
-	print({addr: sensors})
-	sysQ.put({addr: sensors})
-	
+		retval.append({'sensor#':mac, 'avRSSI':sum(sensors[mac][1])/sensors[mac][0], 'numRSSIReadings':sensors[mac][1]})
+	retval =  sorted(retval, key=lambda y:y['avRSSI'], reverse=True)
 	
 
+	print({addr: retval})
+	sysQ.put({addr: retval})
 
-
-class MyTCPHandler(SocketServer.BaseRequestHandler):
-	"""
-	The RequestHandler class for our server.
-	
-	It is instantiated once per connection to the server, and must
-	override the handle() method to implement communication to the
-	client.
-	"""
-	def handle(self):
-    # self.request is the TCP socket connected to the client
-		self.data = self.request.recv(1024).strip()
-		addr = "{}".format(self.client_address[0])
-		data =  self.data
-		#myBuffer.get(addr, []).append(data)
-		q.put((addr, data))
-		
 		#self.request.sendall(self.data.upper())
-
-
 
 def getRSSI():
 	x = shlex.split("/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I")
@@ -111,4 +120,3 @@ def test(q):
 
 if __name__ == '__main__':
 	print "I don't know what to do, doing the only thing I can"
-	start(2)
