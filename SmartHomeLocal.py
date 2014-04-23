@@ -17,6 +17,7 @@ global sysQ
 UDP_IP = "127.0.0.1" #Mike switch order of these two
 UDP_IP = "192.168.43.31"
 UDP_PORT = 9750
+subsidize = [1:0,2:0,3:0]
 
 def start(sysQl):
 	global sysQ
@@ -40,6 +41,10 @@ def startServer(sock): #UDP Server start
 			q.put((addr, data))
 		#print "sServer", addr, data
 
+def subsidizeRSSI(rssi, devN):
+		devN = int(devN)
+		rssi = int(rssi)
+		return rssi + subsidizeRSSI[devN]
 
 def bufferStuff(q):
 	while True:
