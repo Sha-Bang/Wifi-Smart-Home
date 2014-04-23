@@ -14,7 +14,7 @@ myBuffer = {"test":"worked"}
 q = Queue() #Create multiprocessing.Queue
 sch = sched.scheduler(time, sleep)
 global sysQ
-UDP_IP = "127.0.0.1"
+UDP_IP = "127.0.0.1" #Mike switch order of these two
 UDP_IP = "192.168.43.31"
 UDP_PORT = 9750
 
@@ -36,49 +36,50 @@ def startServer(sock): #UDP Server start
 
 		#TODO
 		addr = "12:3:23:32:ab"
-
-		q.put((addr, data))
-		print "sServer", addr, data
+		if data[0]!='#':
+			q.put((addr, data))
+		#print "sServer", addr, data
 
 
 def bufferStuff(q):
 	while True:
 		addr, data = q.get()
-		print "BuffStuff", addr, data
+		#print "BuffStuff", addr, data
 		if not myBuffer.get(addr, []):
-			print "adding", addr
+			#print "adding", addr
 			sch.enter(w*x, 1, sendToSys, addr)
 			Timer(w*x, sendToSys, (addr,)).start()
 
 			system = Process(target=sch.run)
 		myBuffer.setdefault(addr, [])
 		myBuffer[addr].append(data)
-		print "BuffStuff-dict", myBuffer
+		#print "BuffStuff-dict", myBuffer
 
 
 def sendToSys(addr):
 	global sysQ
-	print "s2s", addr
+	#print "s2s", addr
 	localData = []
 	while myBuffer[addr]:
 		localData.append(myBuffer[addr].pop(0))
 	sensors = {}
 	for data in localData:
-		devN, rssi = data.split() 
+		rssi, devN = data.split() 
 		rssi = int(rssi)
 		if rssi == 0:
+			print "#0", devN
 			rssi = 100000
 		sensors.setdefault(devN, [0, []])
-		print sensors[devN], sensors[devN][0]
+		#print sensors[devN], sensors[devN][0]
 		sensors[devN][0] = sensors[devN][0] + 1
 		sensors[devN][1].append(rssi)
 	retval = []
 	for mac in sensors:
-		retval.append({'sensor#':mac, 'avRSSI':sum(sensors[mac][1])/sensors[mac][0], 'numRSSIReadings':sensors[mac][1]})
+		retval.append({'sensor#':int(mac), 'avRSSI':sum(sensors[mac][1])/sensors[mac][0], 'numRSSIReadings':sensors[mac][1]})
 	retval =  sorted(retval, key=lambda y:y['avRSSI'], reverse=True)
 	
 
-	print({addr: retval})
+	#print({addr: retval})
 	sysQ.put({addr: retval})
 
 		#self.request.sendall(self.data.upper())
