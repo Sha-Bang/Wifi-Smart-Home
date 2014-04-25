@@ -3,7 +3,7 @@ const int led = 13;
 const int GROUND = 10;
 const int POWER = 11;
 const int SIGNAL = 12;
-const int SENSOR_ID = 1;
+const int SENSOR_ID = 3;
 
 unsigned long duration;
 int PIN = 7;

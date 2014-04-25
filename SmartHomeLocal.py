@@ -9,7 +9,7 @@ import sched
 import socket
 
 w = .25
-x = 4.5 #2.5
+x = 2.5 #2.5
 myBuffer = {"test":"worked"}
 q = Queue() #Create multiprocessing.Queue
 sch = sched.scheduler(time, sleep)
@@ -17,7 +17,7 @@ global sysQ
 UDP_IP = "127.0.0.1" #Mike switch order of these two
 UDP_IP = "192.168.43.31"
 UDP_PORT = 9750
-subsidize = [1:0,2:0,3:0]
+subsidize = {1:2,2:0,3:-7}
 
 def start(sysQl):
 	global sysQ
@@ -44,7 +44,7 @@ def startServer(sock): #UDP Server start
 def subsidizeRSSI(rssi, devN):
 		devN = int(devN)
 		rssi = int(rssi)
-		return rssi + subsidizeRSSI[devN]
+		return rssi + subsidize[devN]
 
 def bufferStuff(q):
 	while True:
@@ -69,8 +69,9 @@ def sendToSys(addr):
 		localData.append(myBuffer[addr].pop(0))
 	sensors = {}
 	for data in localData:
-		rssi, devN = data.split() 
-		rssi = int(rssi)
+		x = data.split()
+		rssi, devN = x[0], x[1]
+
 		if rssi == 0:
 			print "#0", devN
 			rssi = 100000
